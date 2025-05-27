@@ -1,0 +1,1 @@
+# Affiancamento_Verifica
