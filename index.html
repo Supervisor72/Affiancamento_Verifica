@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiancamento e Verifica - Punti Vendita</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="date"], select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+            appearance: none;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .btn-email {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-telegram {
+            background: linear-gradient(135deg, #0088cc 0%, #229ED9 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .evaluation-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .eval-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            align-items: center;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .eval-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        .eval-item label {
+            margin-bottom: 0;
+            font-size: 15px;
+        }
+
+        .date-auto {
+            background: #f8f9fa;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .emoji {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 AFFIANCAMENTO E VERIFICA</h1>
+            <p>Format per il controllo e valutazione dei punti vendita</p>
+        </div>
+
+        <form id="evaluationForm">
+            <!-- SEZIONE GENERALE -->
+            <div class="section">
+                <h2><span class="emoji">🏪</span> GENERALE</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="puntoVendita">Punto Vendita <span class="required">*</span></label>
+                        <select id="puntoVendita" name="puntoVendita" required>
+                            <option value="">Seleziona punto vendita</option>
+                            <option value="FANO">FANO</option>
+                            <option value="MONSANO">MONSANO</option>
+                            <option value="OSIMO">OSIMO</option>
+                            <option value="MACERATA">MACERATA</option>
+                            <option value="CIVITANOVA">CIVITANOVA</option>
+                            <option value="PESARO">PESARO</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataValutazione">Data</label>
+                        <input type="date" id="dataValutazione" name="dataValutazione" class="date-auto" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="area">Area <span class="required">*</span></label>
+                        <select id="area" name="area" required>
+                            <option value="">Seleziona area</option>
+                            <option value="GED">GED</option>
+                            <option value="PED">PED</option>
+                            <option value="BRUNO">BRUNO</option>
+                            <option value="ISOLA">ISOLA</option>
+                            <option value="CASSA">CASSA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cognomeNome">Cognome Nome <span class="required">*</span></label>
+                        <input type="text" id="cognomeNome" name="cognomeNome" required placeholder="Inserisci cognome e nome">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE APPROCCIO -->
+            <div class="section">
+                <h2><span class="emoji">🤝</span> APPROCCIO</h2>
+                <div class="evaluation-grid">
+                    <div class="eval-item">
+                        <label for="salutoIncontro">Saluto/Incontro</label>
+                        <select id="salutoIncontro" name="salutoIncontro">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="presentazionePromo">Presentazione Promo/Volantino</label>
+                        <select id="presentazionePromo" name="presentazionePromo">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE TRATTIVA ED USO ARMI -->
+            <div class="section">
+                <h2><span class="emoji">💪</span> TRATTIVA ED USO "ARMI"</h2>
+                <div class="evaluation-grid">
+                    <div class="eval-item">
+                        <label for="argomentazioneProdotto">Argomentazione Prodotto</label>
+                        <select id="argomentazioneProdotto" name="argomentazioneProdotto">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="upSelling">Up Selling</label>
+                        <select id="upSelling" name="upSelling">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="attachCrossSelling">Attach/Cross Selling</label>
+                        <select id="attachCrossSelling" name="attachCrossSelling">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="promoCorso">Promo in Corso</label>
+                        <select id="promoCorso" name="promoCorso">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="indicazioniVendita">Indicazioni di Vendita</label>
+                        <select id="indicazioniVendita" name="indicazioniVendita">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="fuoriGriglia">Fuori Griglia</label>
+                        <select id="fuoriGriglia" name="fuoriGriglia">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="incentiviContest">Incentivi & Contest</label>
+                        <select id="incentiviContest" name="incentiviContest">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="gestoriTelefonia">Gestori Telefonia</label>
+                        <select id="gestoriTelefonia" name="gestoriTelefonia">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="estensioniGaranzia">Estensioni Garanzia</label>
+                        <select id="estensioniGaranzia" name="estensioniGaranzia">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="dilazioniPagamento">Dilazioni Pagamento</label>
+                        <select id="dilazioniPagamento" name="dilazioniPagamento">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE CONCLUSIONE -->
+            <div class="section">
+                <h2><span class="emoji">✅</span> CONCLUSIONE</h2>
+                <div class="evaluation-grid">
+                    <div class="eval-item">
+                        <label for="protocolloApplicazione">Protocollo Applicazione</label>
+                        <select id="protocolloApplicazione" name="protocolloApplicazione">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="cartaFan">Carta Fan</label>
+                        <select id="cartaFan" name="cartaFan">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                    <div class="eval-item">
+                        <label for="tagSocialRecensioni">Tag Social/Recensioni</label>
+                        <select id="tagSocialRecensioni" name="tagSocialRecensioni">
+                            <option value="">Seleziona valutazione</option>
+                            <option value="BENE">BENE</option>
+                            <option value="MALE">MALE</option>
+                            <option value="MIGLIORABILE">MIGLIORABILE</option>
+                            <option value="NULLO">NULLO</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE GIUDIZIO FINALE -->
+            <div class="section">
+                <h2><span class="emoji">🎯</span> GIUDIZIO FINALE</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="votoFinale">Voto Finale <span class="required">*</span></label>
+                        <select id="votoFinale" name="votoFinale" required>
+                            <option value="">Seleziona voto</option>
+                            <option value="4">💀 4 - GRAVEMENTE INSUFFICIENTE</option>
+                            <option value="5">😞 5 - INSUFFICIENTE</option>
+                            <option value="6">😐 6 - SUFFICIENTE</option>
+                            <option value="7">😊 7 - BUONO</option>
+                            <option value="8">😍 8 - DISTINTO</option>
+                            <option value="9">🏆 9 - OTTIMO</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="redattoDa">Redatto da <span class="required">*</span></label>
+                        <input type="text" id="redattoDa" name="redattoDa" required placeholder="Nome del valutatore">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="ruolo">Ruolo <span class="required">*</span></label>
+                    <select id="ruolo" name="ruolo" required>
+                        <option value="">Seleziona ruolo</option>
+                        <option value="SUPERVISORS">SUPERVISORS</option>
+                        <option value="DIRETTORE">DIRETTORE</option>
+                        <option value="VICEDIRETTORE">VICEDIRETTORE</option>
+                        <option value="GRATICOLA">GRATICOLA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="note">Note</label>
+                    <textarea id="note" name="note" placeholder="Inserisci eventuali note aggiuntive..."></textarea>
+                </div>
+            </div>
+
+            <!-- PULSANTI DI INVIO -->
+            <div class="button-group">
+                <button type="button" class="btn btn-email" onclick="inviaEmail()">
+                    <span class="emoji">📧</span> Invia Email
+                </button>
+                <button type="button" class="btn btn-telegram" onclick="inviaTelegram()">
+                    <span class="emoji">💬</span> Invia su Telegram
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Imposta la data automatica a oggi
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('dataValutazione').value = formattedDate;
+        });
+
+        function raccogliDati() {
+            const form = document.getElementById('evaluationForm');
+            const formData = new FormData(form);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            return data;
+        }
+
+        function formatMessaggio(data) {
+            const getEmoji = (value) => {
+                switch(value) {
+                    case 'BENE': return '✅';
+                    case 'MALE': return '❌';
+                    case 'MIGLIORABILE': return '⚠️';
+                    case 'NULLO': return '⭕';
+                    default: return '❓';
+                }
+            };
+
+            const getVotoEmoji = (voto) => {
+                switch(voto) {
+                    case '4': return '💀 4 - GRAVEMENTE INSUFFICIENTE';
+                    case '5': return '😞 5 - INSUFFICIENTE';
+                    case '6': return '😐 6 - SUFFICIENTE';
+                    case '7': return '😊 7 - BUONO';
+                    case '8': return '😍 8 - DISTINTO';
+                    case '9': return '🏆 9 - OTTIMO';
+                    default: return 'Non assegnato';
+                }
+            };
+
+            const formatField = (label, value) => {
+                if (!value) return `${label}: ❓ Non specificato`;
+                return `${label}: ${getEmoji(value)} ${value}`;
+            };
+
+            return `📊 AFFIANCAMENTO E VERIFICA
+
+🏪 GENERALE:
+• Punto Vendita: ${data.puntoVendita || 'Non specificato'}
+• Data: ${data.dataValutazione || 'Non specificata'}
+• Area: ${data.area || 'Non specificata'}
+• Collaboratore: ${data.cognomeNome || 'Non specificato'}
+
+🤝 APPROCCIO:
+• ${formatField('Saluto/Incontro', data.salutoIncontro)}
+• ${formatField('Presentazione Promo/Volantino', data.presentazionePromo)}
+
+💪 TRATTIVA ED USO "ARMI":
+• ${formatField('Argomentazione Prodotto', data.argomentazioneProdotto)}
+• ${formatField('Up Selling', data.upSelling)}
+• ${formatField('Attach/Cross Selling', data.attachCrossSelling)}
+• ${formatField('Promo in Corso', data.promoCorso)}
+• ${formatField('Indicazioni di Vendita', data.indicazioniVendita)}
+• ${formatField('Fuori Griglia', data.fuoriGriglia)}
+• ${formatField('Incentivi & Contest', data.incentiviContest)}
+• ${formatField('Gestori Telefonia', data.gestoriTelefonia)}
+• ${formatField('Estensioni Garanzia', data.estensioniGaranzia)}
+• ${formatField('Dilazioni Pagamento', data.dilazioniPagamento)}
+
+✅ CONCLUSIONE:
+• ${formatField('Protocollo Applicazione', data.protocolloApplicazione)}
+• ${formatField('Carta Fan', data.cartaFan)}
+• ${formatField('Tag Social/Recensioni', data.tagSocialRecensioni)}
+
+🎯 GIUDIZIO FINALE:
+• Voto: ${getVotoEmoji(data.votoFinale)}
+• Redatto da: ${data.redattoDa || 'Non specificato'}
+• Ruolo: ${data.ruolo || 'Non specificato'}
+
+💭 Note:
+${data.note || 'Nessuna nota aggiuntiva'}`;
+        }
+
+        function validaForm() {
+            const campiObbligatori = ['puntoVendita', 'area', 'cognomeNome', 'votoFinale', 'redattoDa', 'ruolo'];
+            const campiMancanti = [];
+
+            campiObbligatori.forEach(campo => {
+                const elemento = document.getElementById(campo);
+                if (!elemento.value.trim()) {
+                    campiMancanti.push(elemento.previousElementSibling.textContent.replace(' *', ''));
+                    elemento.style.borderColor = '#e74c3c';
+                } else {
+                    elemento.style.borderColor = '#e1e5e9';
+                }
+            });
+
+            if (campiMancanti.length > 0) {
+                alert('⚠️ Compila tutti i campi obbligatori:\n• ' + campiMancanti.join('\n• '));
+                return false;
+            }
+            return true;
+        }
+
+        function inviaEmail() {
+            if (!validaForm()) return;
+
+            const data = raccogliDati();
+            const messaggio = formatMessaggio(data);
+            
+            const subject = `Affiancamento ${data.puntoVendita} - ${data.cognomeNome} - ${data.dataValutazione}`;
+            const body = encodeURIComponent(messaggio);
+            
+            const mailtoLink = `mailto:d.pavoni@dml-italia.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+            window.location.href = mailtoLink;
+        }
+
+        function inviaTelegram() {
+            if (!validaForm()) return;
+
+            const data = raccogliDati();
+            const messaggio = formatMessaggio(data);
+            
+            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(messaggio)}`;
+            window.open(telegramUrl, '_blank');
+        }
+
+        // Animazione focus sui campi
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            element.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
