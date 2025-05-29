@@ -47,6 +47,30 @@
             font-size: 16px;
         }
 
+        .save-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .save-status.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         .section {
             margin-bottom: 30px;
             padding: 25px;
@@ -158,6 +182,16 @@
             color: white;
         }
 
+        .btn-reset {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
         .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -205,9 +239,106 @@
         .emoji {
             font-size: 18px;
         }
+
+        .reset-warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .reset-warning h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .reset-warning p {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .reset-warning .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .reset-warning .btn {
+            min-width: 100px;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1999;
+            display: none;
+        }
+
+        .summary-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            margin-top: 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .summary-item h4 {
+            color: #495057;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .summary-item .count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
+    <div class="save-status" id="saveStatus">
+        💾 Dati salvati automaticamente
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="reset-warning" id="resetWarning" style="display: none;">
+        <h3>⚠️ Attenzione!</h3>
+        <p>Stai per cancellare tutti i dati salvati. Questa operazione non può essere annullata.</p>
+        <p>Sei sicuro di voler procedere?</p>
+        <div class="btn-group">
+            <button class="btn btn-reset" onclick="confermaReset()">Sì, Cancella</button>
+            <button class="btn" style="background: #6c757d;" onclick="annullaReset()">Annulla</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>📊 AFFIANCAMENTO E VERIFICA</h1>
@@ -426,6 +557,29 @@
                 </div>
             </div>
 
+            <!-- SEZIONE RIEPILOGO -->
+            <div class="section summary-section">
+                <h2><span class="emoji">📈</span> RIEPILOGO VALUTAZIONI</h2>
+                <div class="summary-grid" id="summaryGrid">
+                    <div class="summary-item">
+                        <h4>BENE</h4>
+                        <div class="count" id="countBene">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <h4>MIGLIORABILE</h4>
+                        <div class="count" id="countMigliorabile">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <h4>MALE</h4>
+                        <div class="count" id="countMale">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <h4>NULLO</h4>
+                        <div class="count" id="countNullo">0</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- SEZIONE GIUDIZIO FINALE -->
             <div class="section">
                 <h2><span class="emoji">🎯</span> GIUDIZIO FINALE</h2>
@@ -471,19 +625,48 @@
                 <button type="button" class="btn btn-telegram" onclick="inviaTelegram()">
                     <span class="emoji">💬</span> Invia su Telegram
                 </button>
+                <button type="button" class="btn btn-export" onclick="esportaCSV()">
+                    <span class="emoji">📄</span> Esporta CSV
+                </button>
+                <button type="button" class="btn btn-reset" onclick="mostraResetWarning()">
+                    <span class="emoji">🗑️</span> Reset Form
+                </button>
             </div>
         </form>
     </div>
 
     <script>
-        // Imposta la data automatica a oggi
+        let autoSaveTimeout;
+
+        // Imposta la data automatica e carica i dati salvati
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             document.getElementById('dataValutazione').value = formattedDate;
+            
+            // Carica i dati salvati
+            caricaDatiSalvati();
+            
+            // Aggiorna il riepilogo iniziale
+            aggiornaRiepilogo();
+            
+            // Aggiungi listener per il salvataggio automatico su tutti i campi
+            document.querySelectorAll('input, select, textarea').forEach(element => {
+                element.addEventListener('input', function() {
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(salvaDatiAutomaticamente, 1000);
+                    aggiornaRiepilogo();
+                });
+                
+                element.addEventListener('change', function() {
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(salvaDatiAutomaticamente, 500);
+                    aggiornaRiepilogo();
+                });
+            });
         });
 
-        function raccogliDati() {
+        function salvaDatiAutomaticamente() {
             const form = document.getElementById('evaluationForm');
             const formData = new FormData(form);
             const data = {};
@@ -492,129 +675,330 @@
                 data[key] = value;
             }
             
-            return data;
+            // Salva anche i campi vuoti per mantenere lo stato
+            const allInputs = form.querySelectorAll('input, select, textarea');
+            allInputs.forEach(input => {
+                if (!data.hasOwnProperty(input.name) && input.name) {
+                    data[input.name] = input.value;
+                }
+            });
+            
+            // Uso variabili in memoria invece di localStorage
+            window.evaluationFormData = data;
+            window.evaluationFormSaveTime = new Date().toISOString();
+            
+            mostraSalvataggioNotifica();
         }
 
-        function formatMessaggio(data) {
-            const getEmoji = (value) => {
-                switch(value) {
-                    case 'BENE': return '✅';
-                    case 'MALE': return '❌';
-                    case 'MIGLIORABILE': return '⚠️';
-                    case 'NULLO': return '⭕';
-                    default: return '❓';
+        function caricaDatiSalvati() {
+            if (window.evaluationFormData) {
+                try {
+                    const data = window.evaluationFormData;
+                    
+                    // Ripristina tutti i valori
+                    Object.keys(data).forEach(key => {
+                        const element = document.getElementById(key);
+                        if (element && data[key]) {
+                            element.value = data[key];
+                        }
+                    });
+                    
+                    // Mostra notifica di caricamento dati se sono stati salvati
+                    if (window.evaluationFormSaveTime) {
+                        const saveDate = new Date(window.evaluationFormSaveTime);
+                        const now = new Date();
+                        const diffMinutes = Math.floor((now - saveDate) / (1000 * 60));
+                        
+                        if (diffMinutes < 1440) { // Se salvato nelle ultime 24 ore
+                            setTimeout(() => {
+                                mostraNotifica('📂 Dati precedenti ripristinati!', 'info');
+                            }, 500);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Errore nel caricamento dei dati salvati:', e);
                 }
-            };
+            }
+        }
 
-            const getVotoEmoji = (voto) => {
-                switch(voto) {
-                    case '4': return '💀 4 - GRAVEMENTE INSUFFICIENTE';
-                    case '5': return '😞 5 - INSUFFICIENTE';
-                    case '6': return '😐 6 - SUFFICIENTE';
-                    case '7': return '😊 7 - BUONO';
-                    case '8': return '😍 8 - DISTINTO';
-                    case '9': return '🏆 9 - OTTIMO';
-                    default: return 'Non assegnato';
+        function aggiornaRiepilogo() {
+            const evaluationSelects = document.querySelectorAll('select[name$="Incontro"], select[name$="Promo"], select[name$="Prodotto"], select[name$="Selling"],
+select[name$="Corso"], select[name$="Vendita"], select[name$="Griglia"], select[name$="Contest"], select[name$="Telefonia"], select[name$="Garanzia"], select[name$="Pagamento"], select[name$="Applicazione"], select[name$="Fan"], select[name$="Recensioni"]');
+            
+            const counts = {
+                'BENE': 0,
+                'MIGLIORABILE': 0,
+                'MALE': 0,
+                'NULLO': 0
+            };
+            
+            evaluationSelects.forEach(select => {
+                const value = select.value;
+                if (counts.hasOwnProperty(value)) {
+                    counts[value]++;
                 }
-            };
+            });
+            
+            // Aggiorna i contatori nel DOM
+            document.getElementById('countBene').textContent = counts['BENE'];
+            document.getElementById('countMigliorabile').textContent = counts['MIGLIORABILE'];
+            document.getElementById('countMale').textContent = counts['MALE'];
+            document.getElementById('countNullo').textContent = counts['NULLO'];
+        }
 
-            const formatField = (label, value) => {
-                if (!value) return `${label}: ❓ Non specificato`;
-                return `${label}: ${getEmoji(value)} ${value}`;
-            };
+        function mostraSalvataggioNotifica() {
+            const notification = document.getElementById('saveStatus');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
 
-            return `📊 AFFIANCAMENTO E VERIFICA
-
-🏪 GENERALE:
-• Punto Vendita: ${data.puntoVendita || 'Non specificato'}
-• Data: ${data.dataValutazione || 'Non specificata'}
-• Area: ${data.area || 'Non specificata'}
-• Collaboratore: ${data.cognomeNome || 'Non specificato'}
-
-🤝 APPROCCIO:
-• ${formatField('Saluto/Incontro', data.salutoIncontro)}
-• ${formatField('Presentazione Promo/Volantino', data.presentazionePromo)}
-
-💪 TRATTIVA ED USO "ARMI":
-• ${formatField('Argomentazione Prodotto', data.argomentazioneProdotto)}
-• ${formatField('Up Selling', data.upSelling)}
-• ${formatField('Attach/Cross Selling', data.attachCrossSelling)}
-• ${formatField('Promo in Corso', data.promoCorso)}
-• ${formatField('Indicazioni di Vendita', data.indicazioniVendita)}
-• ${formatField('Fuori Griglia', data.fuoriGriglia)}
-• ${formatField('Incentivi & Contest', data.incentiviContest)}
-• ${formatField('Gestori Telefonia', data.gestoriTelefonia)}
-• ${formatField('Estensioni Garanzia', data.estensioniGaranzia)}
-• ${formatField('Dilazioni Pagamento', data.dilazioniPagamento)}
-
-✅ CONCLUSIONE:
-• ${formatField('Protocollo Applicazione', data.protocolloApplicazione)}
-• ${formatField('Carta Fan', data.cartaFan)}
-• ${formatField('Tag Social/Recensioni', data.tagSocialRecensioni)}
-
-🎯 GIUDIZIO FINALE:
-• Voto: ${getVotoEmoji(data.votoFinale)}
-• Redatto da: ${data.redattoDa || 'Non specificato'}
-• Ruolo: ${data.ruolo || 'Non specificato'}
-
-💭 Note:
-${data.note || 'Nessuna nota aggiuntiva'}`;
+        function mostraNotifica(messaggio, tipo = 'success') {
+            const notification = document.getElementById('saveStatus');
+            notification.textContent = messaggio;
+            
+            // Cambia colore in base al tipo
+            if (tipo === 'info') {
+                notification.style.background = '#17a2b8';
+            } else if (tipo === 'warning') {
+                notification.style.background = '#ffc107';
+                notification.style.color = '#212529';
+            } else {
+                notification.style.background = '#28a745';
+                notification.style.color = 'white';
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                // Ripristina il colore originale
+                notification.style.background = '#28a745';
+                notification.style.color = 'white';
+                notification.textContent = '💾 Dati salvati automaticamente';
+            }, 3000);
         }
 
         function validaForm() {
-            const campiObbligatori = ['puntoVendita', 'area', 'cognomeNome', 'votoFinale', 'redattoDa', 'ruolo'];
-            const campiMancanti = [];
-
-            campiObbligatori.forEach(campo => {
+            const campiObbligatori = [
+                'puntoVendita',
+                'area', 
+                'cognomeNome',
+                'votoFinale',
+                'redattoDa',
+                'ruolo'
+            ];
+            
+            for (let campo of campiObbligatori) {
                 const elemento = document.getElementById(campo);
                 if (!elemento.value.trim()) {
-                    campiMancanti.push(elemento.previousElementSibling.textContent.replace(' *', ''));
+                    elemento.focus();
                     elemento.style.borderColor = '#e74c3c';
-                } else {
-                    elemento.style.borderColor = '#e1e5e9';
+                    mostraNotifica(`⚠️ Compila il campo: ${elemento.previousElementSibling.textContent.replace(' *', '')}`, 'warning');
+                    return false;
                 }
-            });
-
-            if (campiMancanti.length > 0) {
-                alert('⚠️ Compila tutti i campi obbligatori:\n• ' + campiMancanti.join('\n• '));
-                return false;
             }
+            
             return true;
+        }
+
+        function generaTestoRiepilogo() {
+            const form = document.getElementById('evaluationForm');
+            const formData = new FormData(form);
+            
+            let testo = `📊 REPORT AFFIANCAMENTO E VERIFICA\n\n`;
+            
+            // Sezione Generale
+            testo += `🏪 GENERALE\n`;
+            testo += `Punto Vendita: ${formData.get('puntoVendita') || 'Non specificato'}\n`;
+            testo += `Data: ${formData.get('dataValutazione') || 'Non specificata'}\n`;
+            testo += `Area: ${formData.get('area') || 'Non specificata'}\n`;
+            testo += `Dipendente: ${formData.get('cognomeNome') || 'Non specificato'}\n\n`;
+            
+            // Sezione Valutazioni
+            testo += `📋 VALUTAZIONI DETTAGLIATE\n\n`;
+            
+            testo += `🤝 APPROCCIO:\n`;
+            testo += `• Saluto/Incontro: ${formData.get('salutoIncontro') || 'Non valutato'}\n`;
+            testo += `• Presentazione Promo/Volantino: ${formData.get('presentazionePromo') || 'Non valutato'}\n\n`;
+            
+            testo += `💪 TRATTIVA ED USO "ARMI":\n`;
+            testo += `• Argomentazione Prodotto: ${formData.get('argomentazioneProdotto') || 'Non valutato'}\n`;
+            testo += `• Up Selling: ${formData.get('upSelling') || 'Non valutato'}\n`;
+            testo += `• Attach/Cross Selling: ${formData.get('attachCrossSelling') || 'Non valutato'}\n`;
+            testo += `• Promo in Corso: ${formData.get('promoCorso') || 'Non valutato'}\n`;
+            testo += `• Indicazioni di Vendita: ${formData.get('indicazioniVendita') || 'Non valutato'}\n`;
+            testo += `• Fuori Griglia: ${formData.get('fuoriGriglia') || 'Non valutato'}\n`;
+            testo += `• Incentivi & Contest: ${formData.get('incentiviContest') || 'Non valutato'}\n`;
+            testo += `• Gestori Telefonia: ${formData.get('gestoriTelefonia') || 'Non valutato'}\n`;
+            testo += `• Estensioni Garanzia: ${formData.get('estensioniGaranzia') || 'Non valutato'}\n`;
+            testo += `• Dilazioni Pagamento: ${formData.get('dilazioniPagamento') || 'Non valutato'}\n\n`;
+            
+            testo += `✅ CONCLUSIONE:\n`;
+            testo += `• Protocollo Applicazione: ${formData.get('protocolloApplicazione') || 'Non valutato'}\n`;
+            testo += `• Carta Fan: ${formData.get('cartaFan') || 'Non valutato'}\n`;
+            testo += `• Tag Social/Recensioni: ${formData.get('tagSocialRecensioni') || 'Non valutato'}\n\n`;
+            
+            // Riepilogo conteggi
+            const countBene = document.getElementById('countBene').textContent;
+            const countMigliorabile = document.getElementById('countMigliorabile').textContent;
+            const countMale = document.getElementById('countMale').textContent;
+            const countNullo = document.getElementById('countNullo').textContent;
+            
+            testo += `📈 RIEPILOGO:\n`;
+            testo += `✅ BENE: ${countBene}\n`;
+            testo += `⚠️ MIGLIORABILE: ${countMigliorabile}\n`;
+            testo += `❌ MALE: ${countMale}\n`;
+            testo += `⭕ NULLO: ${countNullo}\n\n`;
+            
+            // Giudizio finale
+            const votoFinale = formData.get('votoFinale');
+            const votoTesto = votoFinale ? document.querySelector(`option[value="${votoFinale}"]`).textContent : 'Non assegnato';
+            
+            testo += `🎯 GIUDIZIO FINALE\n`;
+            testo += `Voto: ${votoTesto}\n`;
+            testo += `Redatto da: ${formData.get('redattoDa') || 'Non specificato'}\n`;
+            testo += `Ruolo: ${formData.get('ruolo') || 'Non specificato'}\n`;
+            
+            if (formData.get('note')) {
+                testo += `\n📝 NOTE:\n${formData.get('note')}\n`;
+            }
+            
+            return testo;
         }
 
         function inviaEmail() {
             if (!validaForm()) return;
-
-            const data = raccogliDati();
-            const messaggio = formatMessaggio(data);
             
-            const subject = `Affiancamento ${data.puntoVendita} - ${data.cognomeNome} - ${data.dataValutazione}`;
-            const body = encodeURIComponent(messaggio);
+            const testoRiepilogo = generaTestoRiepilogo();
+            const oggetto = `Report Affiancamento - ${document.getElementById('cognomeNome').value} - ${document.getElementById('puntoVendita').value}`;
             
-            const mailtoLink = `mailto:d.pavoni@dml-italia.com?subject=${encodeURIComponent(subject)}&body=${body}`;
-            window.location.href = mailtoLink;
+            const mailtoLink = `mailto:?subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(testoRiepilogo)}`;
+            window.open(mailtoLink);
+            
+            mostraNotifica('📧 Client email aperto!', 'success');
         }
 
         function inviaTelegram() {
             if (!validaForm()) return;
-
-            const data = raccogliDati();
-            const messaggio = formatMessaggio(data);
             
-            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(messaggio)}`;
+            const testoRiepilogo = generaTestoRiepilogo();
+            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent('')}&text=${encodeURIComponent(testoRiepilogo)}`;
+            
             window.open(telegramUrl, '_blank');
+            mostraNotifica('💬 Telegram aperto!', 'success');
         }
 
-        // Animazione focus sui campi
-        document.querySelectorAll('input, select, textarea').forEach(element => {
-            element.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
+        function esportaCSV() {
+            if (!validaForm()) return;
+            
+            const form = document.getElementById('evaluationForm');
+            const formData = new FormData(form);
+            
+            // Crea l'header CSV
+            let csvContent = 'Campo,Valore\n';
+            
+            // Aggiungi tutti i dati del form
+            const campiOrdinati = [
+                ['Punto Vendita', formData.get('puntoVendita')],
+                ['Data', formData.get('dataValutazione')],
+                ['Area', formData.get('area')],
+                ['Cognome Nome', formData.get('cognomeNome')],
+                ['Saluto/Incontro', formData.get('salutoIncontro')],
+                ['Presentazione Promo', formData.get('presentazionePromo')],
+                ['Argomentazione Prodotto', formData.get('argomentazioneProdotto')],
+                ['Up Selling', formData.get('upSelling')],
+                ['Attach/Cross Selling', formData.get('attachCrossSelling')],
+                ['Promo in Corso', formData.get('promoCorso')],
+                ['Indicazioni Vendita', formData.get('indicazioniVendita')],
+                ['Fuori Griglia', formData.get('fuoriGriglia')],
+                ['Incentivi Contest', formData.get('incentiviContest')],
+                ['Gestori Telefonia', formData.get('gestoriTelefonia')],
+                ['Estensioni Garanzia', formData.get('estensioniGaranzia')],
+                ['Dilazioni Pagamento', formData.get('dilazioniPagamento')],
+                ['Protocollo Applicazione', formData.get('protocolloApplicazione')],
+                ['Carta Fan', formData.get('cartaFan')],
+                ['Tag Social/Recensioni', formData.get('tagSocialRecensioni')],
+                ['Voto Finale', formData.get('votoFinale')],
+                ['Redatto da', formData.get('redattoDa')],
+                ['Ruolo', formData.get('ruolo')],
+                ['Note', formData.get('note')],
+                ['BENE', document.getElementById('countBene').textContent],
+                ['MIGLIORABILE', document.getElementById('countMigliorabile').textContent],
+                ['MALE', document.getElementById('countMale').textContent],
+                ['NULLO', document.getElementById('countNullo').textContent]
+            ];
+            
+            campiOrdinati.forEach(([campo, valore]) => {
+                const valoreEscapato = valore ? `"${valore.toString().replace(/"/g, '""')}"` : '""';
+                csvContent += `"${campo}",${valoreEscapato}\n`;
             });
             
-            element.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
+            // Crea e scarica il file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const nomeFile = `Report_${document.getElementById('cognomeNome').value.replace(/\s+/g, '_')}_${document.getElementById('dataValutazione').value}.csv`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', nomeFile);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            mostraNotifica('📄 File CSV esportato!', 'success');
+        }
+
+        function mostraResetWarning() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('resetWarning').style.display = 'block';
+        }
+
+        function annullaReset() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('resetWarning').style.display = 'none';
+        }
+
+        function confermaReset() {
+            const form = document.getElementById('evaluationForm');
+            form.reset();
+            
+            // Ripristina la data di oggi
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('dataValutazione').value = formattedDate;
+            
+            // Cancella i dati salvati
+            window.evaluationFormData = null;
+            window.evaluationFormSaveTime = null;
+            
+            // Aggiorna il riepilogo
+            aggiornaRiepilogo();
+            
+            // Chiudi il dialog
+            annullaReset();
+            
+            mostraNotifica('🗑️ Form resettato!', 'info');
+        }
+
+        // Gestione chiusura dialog con ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                annullaReset();
+            }
+        });
+
+        // Chiusura dialog cliccando sull'overlay
+        document.getElementById('overlay').addEventListener('click', function() {
+            annullaReset();
         });
     </script>
 </body>
 </html>
+
+
+                                                                
