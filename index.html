@@ -158,6 +158,11 @@
             color: white;
         }
 
+        .btn-reset { /* Stile per il nuovo bottone di reset */
+            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+            color: white;
+        }
+
         .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -195,7 +200,7 @@
         .date-auto {
             background: #f8f9fa;
             color: #666;
-            cursor: not-allowed;
+            /* cursor: not-allowed; Rimosso per permettere al JS di scrivere anche se readonly */
         }
 
         .required {
@@ -204,6 +209,17 @@
 
         .emoji {
             font-size: 18px;
+        }
+
+        /* Stile per il messaggio di stato del localStorage */
+        .form-status-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            color: #333;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -215,7 +231,6 @@
         </div>
 
         <form id="evaluationForm">
-            <!-- SEZIONE GENERALE -->
             <div class="section">
                 <h2><span class="emoji">🏪</span> GENERALE</h2>
                 <div class="form-row">
@@ -255,7 +270,6 @@
                 </div>
             </div>
 
-            <!-- SEZIONE APPROCCIO -->
             <div class="section">
                 <h2><span class="emoji">🤝</span> APPROCCIO</h2>
                 <div class="evaluation-grid">
@@ -282,14 +296,13 @@
                 </div>
             </div>
 
-            <!-- SEZIONE TRATTIVA ED USO ARMI -->
             <div class="section">
                 <h2><span class="emoji">💪</span> TRATTIVA ED USO "ARMI"</h2>
                 <div class="evaluation-grid">
                     <div class="eval-item">
                         <label for="argomentazioneProdotto">Argomentazione Prodotto</label>
                         <select id="argomentazioneProdotto" name="argomentazioneProdotto">
-                            <option value="">Seleziona valutazione</option>
+                             <option value="">Seleziona valutazione</option>
                             <option value="BENE">BENE</option>
                             <option value="MALE">MALE</option>
                             <option value="MIGLIORABILE">MIGLIORABILE</option>
@@ -389,7 +402,6 @@
                 </div>
             </div>
 
-            <!-- SEZIONE CONCLUSIONE -->
             <div class="section">
                 <h2><span class="emoji">✅</span> CONCLUSIONE</h2>
                 <div class="evaluation-grid">
@@ -426,7 +438,6 @@
                 </div>
             </div>
 
-            <!-- SEZIONE GIUDIZIO FINALE -->
             <div class="section">
                 <h2><span class="emoji">🎯</span> GIUDIZIO FINALE</h2>
                 <div class="form-row">
@@ -463,7 +474,6 @@
                 </div>
             </div>
 
-            <!-- PULSANTI DI INVIO -->
             <div class="button-group">
                 <button type="button" class="btn btn-email" onclick="inviaEmail()">
                     <span class="emoji">📧</span> Invia Email
@@ -471,21 +481,137 @@
                 <button type="button" class="btn btn-telegram" onclick="inviaTelegram()">
                     <span class="emoji">💬</span> Invia su Telegram
                 </button>
+                <button type="button" class="btn btn-reset" id="btnResetForm"> <span class="emoji">🔄</span> Resetta Modulo
+                </button>
             </div>
-        </form>
+            <div id="localStorageStatus" class="form-status-message"></div> </form>
     </div>
 
     <script>
-        // Imposta la data automatica a oggi
-        document.addEventListener('DOMContentLoaded', function() {
+        // --- INIZIO SCRIPT LOCALSTORAGE ---
+        const STORAGE_KEY_EVALUATION = 'evaluationFormData';
+        const evaluationForm = document.getElementById('evaluationForm');
+        const evaluationFormFields = evaluationForm.querySelectorAll('input, textarea, select');
+        const evaluationResetButton = document.getElementById('btnResetForm');
+        const evaluationStatusDiv = document.getElementById('localStorageStatus');
+        const dataValutazioneField = document.getElementById('dataValutazione');
+
+        function setTodayDate() {
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
-            document.getElementById('dataValutazione').value = formattedDate;
+            dataValutazioneField.value = formattedDate;
+        }
+
+        function saveEvaluationFormData() {
+            const formData = {};
+            evaluationFormFields.forEach(field => {
+                const key = field.id || field.name;
+                if (key) {
+                    if (field.type === 'checkbox') {
+                        formData[key] = field.checked;
+                    } else if (field.type === 'radio') {
+                        if (field.checked) {
+                            formData[key] = field.value;
+                        }
+                    } else {
+                        formData[key] = field.value;
+                    }
+                }
+            });
+            localStorage.setItem(STORAGE_KEY_EVALUATION, JSON.stringify(formData));
+            if (evaluationStatusDiv) {
+                const now = new Date();
+                evaluationStatusDiv.textContent = `Modulo salvato localmente alle ${now.toLocaleTimeString()}.`;
+            }
+            // console.log('Dati salvati nel localStorage:', formData);
+        }
+
+        function loadEvaluationFormData() {
+            const savedData = localStorage.getItem(STORAGE_KEY_EVALUATION);
+            let dataLoaded = false;
+            if (savedData) {
+                try {
+                    const formData = JSON.parse(savedData);
+                    evaluationFormFields.forEach(field => {
+                        const key = field.id || field.name;
+                        if (key && formData.hasOwnProperty(key)) {
+                            if (field.type === 'checkbox') {
+                                field.checked = formData[key];
+                            } else if (field.type === 'radio') {
+                                if (field.value === formData[key]) {
+                                    field.checked = true;
+                                }
+                            } else {
+                                field.value = formData[key];
+                            }
+                        }
+                    });
+                    if (evaluationStatusDiv) {
+                        evaluationStatusDiv.textContent = 'Dati precedentemente salvati sono stati caricati.';
+                    }
+                    // console.log('Dati caricati dal localStorage:', formData);
+                    dataLoaded = true;
+                } catch (e) {
+                    console.error("Errore nel parsing dei dati dal localStorage:", e);
+                    if (evaluationStatusDiv) {
+                        evaluationStatusDiv.textContent = 'Errore nel caricare i dati salvati.';
+                    }
+                    localStorage.removeItem(STORAGE_KEY_EVALUATION); // Rimuove dati corrotti
+                }
+            } else {
+                 if (evaluationStatusDiv) {
+                    evaluationStatusDiv.textContent = 'Nessun dato salvato trovato. Inizia a compilare!';
+                }
+            }
+            return dataLoaded;
+        }
+
+        function resetEvaluationFormAndStorage() {
+            evaluationForm.reset(); // Resetta i campi del modulo ai valori di default HTML
+            localStorage.removeItem(STORAGE_KEY_EVALUATION);
+            setTodayDate(); // Reimposta la data a oggi dopo il reset
+            if (evaluationStatusDiv) {
+                evaluationStatusDiv.textContent = 'Modulo resettato e dati locali cancellati. Data impostata a oggi.';
+            }
+            // console.log('Modulo resettato e localStorage pulito.');
+            // Dopo il reset, forziamo un salvataggio dello stato pulito (con la data odierna)
+            // per evitare che un eventuale vecchio stato venga ricaricato se l'utente non interagisce subito.
+            // Oppure, si può decidere di non salvare nulla finché l'utente non modifica un campo.
+            // Per ora, lasciamo che il prossimo input triggeri il salvataggio.
+        }
+
+        // Event Listener per LocalStorage
+        window.addEventListener('load', () => {
+            const dataWasLoaded = loadEvaluationFormData();
+            if (!dataWasLoaded || !dataValutazioneField.value) {
+                // Se non sono stati caricati dati per la data, o il campo data è vuoto,
+                // imposta la data odierna. Questo assicura che la data sia sempre compilata.
+                setTodayDate();
+            }
+             // Salva immediatamente lo stato caricato (o lo stato con la data odierna)
+            saveEvaluationFormData();
         });
 
+        evaluationFormFields.forEach(field => {
+            field.addEventListener('input', saveEvaluationFormData);
+        });
+
+        if (evaluationResetButton) {
+            evaluationResetButton.addEventListener('click', function() {
+                if (confirm('Sei sicuro di voler resettare tutti i campi? I dati non salvati andranno persi.')) {
+                    resetEvaluationFormAndStorage();
+                }
+            });
+        }
+        // --- FINE SCRIPT LOCALSTORAGE ---
+
+
+        // Script esistente per data automatica, validazione, invio, etc.
+        // La parte di 'DOMContentLoaded' per la data è stata integrata nella logica di loadEvaluationFormData e setTodayDate()
+
         function raccogliDati() {
-            const form = document.getElementById('evaluationForm');
-            const formData = new FormData(form);
+            // const form = document.getElementById('evaluationForm'); // Già definito come evaluationForm
+            const formData = new FormData(evaluationForm);
             const data = {};
             
             for (let [key, value] of formData.entries()) {
@@ -502,7 +628,7 @@
                     case 'MALE': return '❌';
                     case 'MIGLIORABILE': return '⚠️';
                     case 'NULLO': return '⭕';
-                    default: return '❓';
+                    default: return ''; // Non mostrare '❓ Non specificato' qui, gestito sotto
                 }
             };
 
@@ -518,24 +644,29 @@
                 }
             };
 
-            const formatField = (label, value) => {
-                if (!value) return `${label}: ❓ Non specificato`;
-                return `${label}: ${getEmoji(value)} ${value}`;
+            // Modificato per essere più conciso se il valore è vuoto o nullo
+            const formatField = (label, value, isEval = true) => {
+                if (!value || value.trim() === "") return `${label}: _Non compilato_`;
+                if (isEval) {
+                     const emoji = getEmoji(value);
+                     return `${label}: ${emoji} ${value}`;
+                }
+                return `${label}: ${value}`;
             };
 
-            return `📊 AFFIANCAMENTO E VERIFICA
+            return `📊 *AFFIANCAMENTO E VERIFICA*
 
-🏪 GENERALE:
-• Punto Vendita: ${data.puntoVendita || 'Non specificato'}
-• Data: ${data.dataValutazione || 'Non specificata'}
-• Area: ${data.area || 'Non specificata'}
-• Collaboratore: ${data.cognomeNome || 'Non specificato'}
+🏪 *GENERALE*:
+• ${formatField('Punto Vendita', data.puntoVendita, false)}
+• ${formatField('Data', data.dataValutazione, false)}
+• ${formatField('Area', data.area, false)}
+• ${formatField('Collaboratore', data.cognomeNome, false)}
 
-🤝 APPROCCIO:
+🤝 *APPROCCIO*:
 • ${formatField('Saluto/Incontro', data.salutoIncontro)}
 • ${formatField('Presentazione Promo/Volantino', data.presentazionePromo)}
 
-💪 TRATTIVA ED USO "ARMI":
+💪 *TRATTIVA ED USO "ARMI"*:
 • ${formatField('Argomentazione Prodotto', data.argomentazioneProdotto)}
 • ${formatField('Up Selling', data.upSelling)}
 • ${formatField('Attach/Cross Selling', data.attachCrossSelling)}
@@ -547,36 +678,39 @@
 • ${formatField('Estensioni Garanzia', data.estensioniGaranzia)}
 • ${formatField('Dilazioni Pagamento', data.dilazioniPagamento)}
 
-✅ CONCLUSIONE:
+✅ *CONCLUSIONE*:
 • ${formatField('Protocollo Applicazione', data.protocolloApplicazione)}
 • ${formatField('Carta Fan', data.cartaFan)}
 • ${formatField('Tag Social/Recensioni', data.tagSocialRecensioni)}
 
-🎯 GIUDIZIO FINALE:
+🎯 *GIUDIZIO FINALE*:
 • Voto: ${getVotoEmoji(data.votoFinale)}
-• Redatto da: ${data.redattoDa || 'Non specificato'}
-• Ruolo: ${data.ruolo || 'Non specificato'}
+• ${formatField('Redatto da', data.redattoDa, false)}
+• ${formatField('Ruolo', data.ruolo, false)}
 
-💭 Note:
-${data.note || 'Nessuna nota aggiuntiva'}`;
+💭 *Note*:
+${data.note || '_Nessuna nota aggiuntiva_'}`;
         }
 
         function validaForm() {
             const campiObbligatori = ['puntoVendita', 'area', 'cognomeNome', 'votoFinale', 'redattoDa', 'ruolo'];
             const campiMancanti = [];
+            let primoCampoMancante = null;
 
-            campiObbligatori.forEach(campo => {
-                const elemento = document.getElementById(campo);
-                if (!elemento.value.trim()) {
+            campiObbligatori.forEach(campoId => {
+                const elemento = document.getElementById(campoId);
+                if (!elemento.value || elemento.value.trim() === "") { // Controllo anche per stringhe vuote dopo trim
                     campiMancanti.push(elemento.previousElementSibling.textContent.replace(' *', ''));
                     elemento.style.borderColor = '#e74c3c';
+                    if (!primoCampoMancante) primoCampoMancante = elemento;
                 } else {
-                    elemento.style.borderColor = '#e1e5e9';
+                    elemento.style.borderColor = '#e1e5e9'; // Stile di default
                 }
             });
 
             if (campiMancanti.length > 0) {
                 alert('⚠️ Compila tutti i campi obbligatori:\n• ' + campiMancanti.join('\n• '));
+                if (primoCampoMancante) primoCampoMancante.focus(); // Focus sul primo campo mancante
                 return false;
             }
             return true;
@@ -586,33 +720,37 @@ ${data.note || 'Nessuna nota aggiuntiva'}`;
             if (!validaForm()) return;
 
             const data = raccogliDati();
-            const messaggio = formatMessaggio(data);
+            const messaggio = formatMessaggio(data); // Usa il messaggio formattato per Telegram anche per l'email
             
-            const subject = `Affiancamento ${data.puntoVendita} - ${data.cognomeNome} - ${data.dataValutazione}`;
-            const body = encodeURIComponent(messaggio);
+            const subject = `Affiancamento ${data.puntoVendita || 'N/D'} - ${data.cognomeNome || 'N/D'} - ${data.dataValutazione || 'N/D'}`;
+            const body = encodeURIComponent(messaggio); // Usa il messaggio formattato
             
             const mailtoLink = `mailto:d.pavoni@dml-italia.com?subject=${encodeURIComponent(subject)}&body=${body}`;
             window.location.href = mailtoLink;
+            // console.log("Considera di pulire il localStorage qui, se l'invio email è confermato dall'utente.");
+            // Se vuoi pulire dopo il tentativo di invio: resetEvaluationFormAndStorage(); (ma l'utente potrebbe annullare l'email)
         }
 
         function inviaTelegram() {
             if (!validaForm()) return;
 
             const data = raccogliDati();
-            const messaggio = formatMessaggio(data);
+            const messaggio = formatMessaggio(data); // Usa la formattazione con Markdown di Telegram
             
             const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(messaggio)}`;
             window.open(telegramUrl, '_blank');
+            // console.log("Considera di pulire il localStorage qui, se l'invio a Telegram è confermato dall'utente.");
+            // Se vuoi pulire dopo il tentativo di invio: resetEvaluationFormAndStorage(); (ma l'utente potrebbe chiudere la tab di Telegram)
         }
 
-        // Animazione focus sui campi
+        // Animazione focus sui campi (invariata)
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
+                // this.parentElement.style.transform = 'scale(1.02)'; // Rimosso temporaneamente se causa problemi con focus
             });
             
             element.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
+                // this.parentElement.style.transform = 'scale(1)'; // Rimosso temporaneamente
             });
         });
     </script>
